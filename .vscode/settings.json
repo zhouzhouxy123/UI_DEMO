@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.json": "jsonc",
+        "functional": "cpp"
+    },
+    "cmake.sourceDirectory": "D:/ui_works/windows/flutter"
+}
