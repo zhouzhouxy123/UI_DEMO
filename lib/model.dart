@@ -21,6 +21,6 @@ class MyState {
   MyState({
     required this.data,
     this.pageIndex = 0,
-    this.recordIndex = 1,
+    this.recordIndex = -1,
   });
 }

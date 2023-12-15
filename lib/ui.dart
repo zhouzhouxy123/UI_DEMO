@@ -43,7 +43,7 @@ class Frame extends UI {
           width = max(width, iW);
         }
         height -= space; //最后一个框不用space
-      }  
+      }
 
       width += (padding + border) * 2;
 
@@ -102,10 +102,21 @@ Size computetextSize(String text, TextStyle style) {
   return textPainter.size;
 }
 
-class Click{
+class Click extends UI {
   final UI child;
   final void Function() onClick;
 
-  Click({required this.child, required this.onClick});  
+  Click({required this.child, required this.onClick});
+  
+  @override
+  (double, double) computeLayout() {
+    // 调用子元素的 computeLayout 方法获取宽度和高度
+    final (childWidth, childHeight) = child.computeLayout();
+
+    // 将子元素的宽度和高度设置给 Click
+    width = childWidth;
+    height = childHeight;
+
+    return (width, height);
+  }
 }
- 

@@ -38,6 +38,23 @@ SizedContainer viewImpl(UI viewObject, double wScale, double hScale) {
   final mHeight = viewObject.height * hScale;
 
   switch (viewObject) {
+    
+    case Click click:
+      {
+        // Render the child of Click
+        final childContainer = viewImpl(click.child, wScale, hScale);
+
+        final clickableContainer = GestureDetector(
+          onTap: click.onClick,
+          child: childContainer.child,
+        );
+
+        return SizedContainer(
+          width: childContainer.width,
+          height: childContainer.height,
+          child: clickableContainer,
+        );
+      }
     case Label label:
       {
         final text = Text(

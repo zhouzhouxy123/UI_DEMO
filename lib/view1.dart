@@ -31,15 +31,15 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     MyState state = MyState(
-      data:  List.generate(
-      20,
-      (i) => Record(
-        title: "标题$i",
-        intro: "第$i个简介",
-        link: "https://www.baidu.com/s?wd=$i",
+      data: List.generate(
+        20,
+        (i) => Record(
+          title: "标题${i + 1}",
+          intro: "第${i + 1}个简介",
+          link: "https://www.baidu.com/s?wd=${i + 1}",
         ),
       ),
-    ); 
+    );
 
     UI previewList = mkPreviewList(state);
     UI details = mkDetails(state);
@@ -48,23 +48,15 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text("UI Works"),
       ),
-       body: Row(
+      body: Row(
         children: [
           // 左侧导航栏
           Expanded(
             flex: 1,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                    showDetails = false;
-                    selectedRecordIndex = 1;
-                });
-              },
-              child: Container(
-                color: Colors.blue,
-                padding: EdgeInsets.all(8.0),
-                child: MV(viewObject: previewList),
-              ),
+            child: Container(
+              color: Colors.blue,
+              padding: EdgeInsets.all(8.0),
+              child: MV(viewObject: previewList),
             ),
           ),
           // 右侧标题正文链接
@@ -83,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-UI  mkDetails(MyState state) {
+  UI mkDetails(MyState state) {
     if (selectedRecordIndex >= 0) {
       Record record = state.data[selectedRecordIndex];
       return Frame(
@@ -98,45 +90,44 @@ UI  mkDetails(MyState state) {
     }
   }
 
-UI mkPreviewList(MyState state) {
-  int start = countperpage * state.pageIndex;
-  List<Record> dataToView = state.data.sublist(start, start + countperpage);
-
-  List<Click> itemList = [
-    for (Record  datum in dataToView)
-      Click(
-        child:mkPreviewItem(datum), 
-        onClick: (){
-          setState((){
-            showDetails = true;
-            selectedRecordIndex = state.data.indexOf(datum);
-          });
-        }
-      ),
+  UI mkPreviewList(MyState state) {
+    int start = countperpage * state.pageIndex;
+    List<Record> dataToView = state.data.sublist(start, start + countperpage);
+    List<Click> itemList = [
+      for (Record datum in dataToView) mkPreviewItem(state, datum),
       Click(
         child: Frame(
           vertical: false,
           children: [
-            (1,Label(text: "第${state.pageIndex}页")),
-            (1,Label(text: "共${state.data.length}条记录"))
+            (1, Label(text: "第${state.pageIndex}页")),
+            (1, Label(text: "共${countperpage}条记录"))
           ],
         ),
-        onClick: (){
-           setState(() {
+        onClick: () {
+          setState(() {
             showDetails = false;
             selectedRecordIndex = -1;
           });
-        },
+        }, 
       ),
-  ];
-  return Frame(children: [for (Click click in itemList) (1, click.child)]);
-}
+    ];
+    return Frame(children: [for (Click click in itemList) (1, click)]);
+  }
 
-UI mkPreviewItem(Record record) {
-    return Frame(
-      vertical: false,
-      children: [
-        (1.0, Label(text: record.title)),
-      ],
-    );
-}}
+  Click mkPreviewItem(MyState state, Record record) {
+    final click = Click(
+        child: Frame(
+          vertical: false,
+          children: [
+            (1.0, Label(text: record.title)),
+          ],
+        ),
+        onClick: () {
+          setState(() {
+            showDetails = true;
+            selectedRecordIndex = state.data.indexOf(record);
+          });
+        });
+    return click;
+  }
+}
