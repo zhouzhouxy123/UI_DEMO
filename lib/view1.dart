@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ui_works/ui.dart';
+import 'dart:async';
 
 import 'package:ui_works/model.dart';
 import 'package:ui_works/renderer.dart';
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyHomePage(),
+    home: MyHomePage(),
     );
   }
 }
@@ -25,8 +26,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool showDetails = false;
-  int selectedRecordIndex = -1;
+  final StreamController<int> _streamController = StreamController<int>();
+
+  @override
+  void dispose() {
+    _streamController.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     UI previewList = mkPreviewList(state);
-    UI details = mkDetails(state);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,9 +70,20 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Container(
               color: Colors.grey[200],
               padding: EdgeInsets.all(8.0),
-              child: MV(
-                  viewObject:
-                      selectedRecordIndex >= 0 ? details : mkDetails(state)),
+              child: StreamBuilder<int>(
+                stream: _streamController.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator(); // Placeholder for loading state
+                  } else {
+                    return MV(
+                      viewObject: snapshot.data != null && snapshot.data! >= 0
+                          ? mkDetails(state, snapshot.data!)
+                          : mkDetailsPlaceholder(),
+                    );
+                  }
+                },
+              ),
             ),
           ),
         ],
@@ -75,9 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  UI mkDetails(MyState state) {
-    if (selectedRecordIndex >= 0) {
-      Record record = state.data[selectedRecordIndex];
+  UI mkDetails(MyState state, int index) {
+    if (index >= 0 && index < state.data.length) {
+      Record record = state.data[index];
       return Frame(
         children: [
           (1, Label(text: record.title)),
@@ -88,6 +104,11 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       return Label(text: "没有选中任何记录");
     }
+  }
+
+  UI mkDetailsPlaceholder() {
+    // Placeholder UI when no record is selected
+    return Label(text: "没有选中任何记录");
   }
 
   UI mkPreviewList(MyState state) {
@@ -104,11 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
         onClick: () {
-          setState(() {
-            showDetails = false;
-            selectedRecordIndex = -1;
-          });
-        }, 
+          _streamController.add(-1);
+        },
       ),
     ];
     return Frame(children: [for (Click click in itemList) (1, click)]);
@@ -116,18 +134,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Click mkPreviewItem(MyState state, Record record) {
     final click = Click(
-        child: Frame(
-          vertical: false,
-          children: [
-            (1.0, Label(text: record.title)),
-          ],
-        ),
-        onClick: () {
-          setState(() {
-            showDetails = true;
-            selectedRecordIndex = state.data.indexOf(record);
-          });
-        });
+      child: Frame(
+        vertical: false,
+        children: [
+          (1.0, Label(text: record.title)),
+        ],
+      ),
+      onClick: () {
+        _streamController.add(state.data.indexOf(record));
+      },
+    );
     return click;
   }
 }
